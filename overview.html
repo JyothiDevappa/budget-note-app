@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>📊 Monthly Overview</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins&display=swap" rel="stylesheet">
   <style>
@@ -37,6 +37,7 @@
       border-radius: 12px;
       margin-bottom: 16px;
       text-align: center;
+      position: relative;
     }
 
     .overview-card h3 {
@@ -48,6 +49,39 @@
     .overview-card p {
       font-size: 0.95rem;
       margin: 0;
+    }
+
+    .card-buttons {
+      margin-top: 10px;
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+    }
+
+    .card-buttons button {
+      background: #333;
+      color: #f5f5dc;
+      border: none;
+      padding: 6px 10px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.8rem;
+      transition: background 0.2s ease;
+    }
+
+    .card-buttons button:hover {
+      background: #555;
+    }
+
+    input[type="number"] {
+      margin-top: 10px;
+      padding: 6px;
+      width: 80%;
+      border-radius: 8px;
+      border: none;
+      background: #2b2b2b;
+      color: #f5f5dc;
+      text-align: center;
     }
 
     .quote {
@@ -63,29 +97,91 @@
 
   <h2>📊 Monthly Overview</h2>
 
-  <div class="overview-card">
+  <div class="overview-card" data-key="income">
     <h3>Total Income</h3>
-    <p>₹0</p>
+    <p class="amount">₹0</p>
+    <input type="number" class="edit-input" placeholder="Enter new amount" style="display:none;">
+    <div class="card-buttons">
+      <button class="edit-btn">Edit</button>
+      <button class="delete-btn">Delete</button>
+    </div>
   </div>
 
-  <div class="overview-card">
+  <div class="overview-card" data-key="spent">
     <h3>Total Spent</h3>
-    <p>₹0</p>
+    <p class="amount">₹0</p>
+    <input type="number" class="edit-input" placeholder="Enter new amount" style="display:none;">
+    <div class="card-buttons">
+      <button class="edit-btn">Edit</button>
+      <button class="delete-btn">Delete</button>
+    </div>
   </div>
 
-  <div class="overview-card">
+  <div class="overview-card" data-key="bills">
     <h3>Total Bills Paid</h3>
-    <p>₹0</p>
+    <p class="amount">₹0</p>
+    <input type="number" class="edit-input" placeholder="Enter new amount" style="display:none;">
+    <div class="card-buttons">
+      <button class="edit-btn">Edit</button>
+      <button class="delete-btn">Delete</button>
+    </div>
   </div>
 
-  <div class="overview-card">
+  <div class="overview-card" data-key="savings">
     <h3>Total Savings</h3>
-    <p>₹0</p>
+    <p class="amount">₹0</p>
+    <input type="number" class="edit-input" placeholder="Enter new amount" style="display:none;">
+    <div class="card-buttons">
+      <button class="edit-btn">Edit</button>
+      <button class="delete-btn">Delete</button>
+    </div>
   </div>
 
   <div class="quote">
     “Budgeting is just adulting with a calculator. 😄”
   </div>
+
+  <script>
+    document.querySelectorAll(".overview-card").forEach(card => {
+      const key = card.dataset.key;
+      const amountText = card.querySelector(".amount");
+      const input = card.querySelector(".edit-input");
+      const editBtn = card.querySelector(".edit-btn");
+      const deleteBtn = card.querySelector(".delete-btn");
+
+      // Load saved value from localStorage
+      const saved = localStorage.getItem(`overview-${key}`);
+      if (saved !== null) {
+        amountText.textContent = `₹${saved}`;
+      }
+
+      // Edit button click
+      editBtn.addEventListener("click", () => {
+        if (input.style.display === "none") {
+          input.style.display = "block";
+          input.value = "";
+          input.focus();
+          editBtn.textContent = "Save";
+        } else {
+          const newVal = input.value.trim();
+          if (newVal !== "") {
+            amountText.textContent = `₹${newVal}`;
+            localStorage.setItem(`overview-${key}`, newVal);
+          }
+          input.style.display = "none";
+          editBtn.textContent = "Edit";
+        }
+      });
+
+      // Delete button click
+      deleteBtn.addEventListener("click", () => {
+        if (confirm("Clear this amount?")) {
+          localStorage.removeItem(`overview-${key}`);
+          amountText.textContent = `₹0`;
+        }
+      });
+    });
+  </script>
 
 </body>
 </html>

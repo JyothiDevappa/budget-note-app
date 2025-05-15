@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Balance Overview</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Poppins', sans-serif;
+      background-color: #000;
+      color: #f5f5dc;
+      padding: 30px 20px;
+    }
+
+    .container {
+      max-width: 500px;
+      margin: auto;
+      position: relative;
+    }
+
+    h1 {
+      font-size: 1.6em;
+      margin-bottom: 20px;
+    }
+
+    .balance-box, .spend-box, .savings-box {
+      background: #1a1a1a;
+      padding: 15px;
+      border-radius: 12px;
+      margin-bottom: 16px;
+      position: relative;
+    }
+
+    .edit-btn {
+      background: none;
+      border: none;
+      color: #ccc;
+      font-size: 1em;
+      cursor: pointer;
+      float: right;
+      margin-left: 8px;
+    }
+
+    .funny-text {
+      margin-top: 10px;
+      font-style: italic;
+      font-size: 0.95em;
+      color: #e3e3c4;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    input[type="number"] {
+      width: 100%;
+      padding: 10px;
+      margin-top: 8px;
+      font-size: 1em;
+      background-color: #000;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+    }
+
+    button.save-btn {
+      margin-top: 8px;
+      width: 100%;
+      padding: 10px;
+      background-color: #f5f5dc;
+      color: #000;
+      border: none;
+      border-radius: 8px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .settings-icon {
+      position: absolute;
+      top: 0;
+      right: 0;
+      background: none;
+      border: none;
+      color: #f5f5dc;
+      font-size: 1.5em;
+      cursor: pointer;
+    }
+
+    .settings-menu {
+      position: absolute;
+      top: 40px;
+      right: 0;
+      background-color: #1a1a1a;
+      border: 1px solid #333;
+      border-radius: 8px;
+      padding: 10px;
+      z-index: 10;
+    }
+
+    .settings-menu div {
+      padding: 6px 0;
+      cursor: pointer;
+    }
+
+    .settings-menu div:hover {
+      color: #f5f5dc;
+      background-color: #333;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>💰 Your Balance</h1>
+
+    <button class="settings-icon" onclick="toggleSettings()">⋮</button>
+    <div class="settings-menu hidden" id="settingsMenu">
+      <div onclick="resetData()">🔄 Reset All</div>
+    </div>
+
+    <div class="balance-box">
+      <strong>Total Balance:</strong> ₹<span id="balanceDisplay">--</span>
+      <button class="edit-btn" onclick="toggleEdit('balance')">✏️</button>
+      <div id="balanceEdit" class="hidden">
+        <input type="number" id="balanceInput" placeholder="Enter your balance" />
+        <button class="save-btn" onclick="saveBalance()">Save</button>
+      </div>
+    </div>
+
+    <div class="spend-box">
+      <strong>Money Spent Today:</strong> ₹<span id="spentDisplay">0</span>
+      <button class="edit-btn" onclick="toggleEdit('spent')">✏️</button>
+      <div id="spentEdit" class="hidden">
+        <input type="number" id="spentInput" placeholder="Enter today's spending" />
+        <button class="save-btn" onclick="saveSpent()">Save</button>
+      </div>
+    </div>
+
+    <div class="savings-box">
+      <strong>Savings:</strong> ₹<span id="savingsDisplay">--</span>
+    </div>
+
+    <div class="funny-text" id="funnyQuote"></div>
+  </div>
+
+  <script>
+    let balance = localStorage.getItem('balance');
+    let spent = localStorage.getItem('spent') || 0;
+
+    document.getElementById('spentDisplay').textContent = spent;
+
+    if (balance !== null) {
+      document.getElementById('balanceDisplay').textContent = balance;
+      updateSavings();
+    }
+
+    function toggleEdit(type) {
+      document.getElementById(type + 'Edit').classList.toggle('hidden');
+    }
+
+    function saveBalance() {
+      const newBalance = document.getElementById('balanceInput').value;
+      if (newBalance) {
+        localStorage.setItem('balance', newBalance);
+        balance = newBalance;
+        document.getElementById('balanceDisplay').textContent = balance;
+        updateSavings();
+        toggleEdit('balance');
+      }
+    }
+
+    function saveSpent() {
+      const newSpent = document.getElementById('spentInput').value;
+      if (newSpent) {
+        localStorage.setItem('spent', newSpent);
+        spent = newSpent;
+        document.getElementById('spentDisplay').textContent = spent;
+        updateSavings();
+        toggleEdit('spent');
+      }
+    }
+
+    function updateSavings() {
+      const savings = balance - spent;
+      document.getElementById('savingsDisplay').textContent = savings;
+
+      const quote = document.getElementById('funnyQuote');
+      if (spent >= balance) {
+        quote.textContent = "🫠 Broke but beautiful!";
+      } else if (spent >= balance / 2) {
+        quote.textContent = "😅 Half the treasure gone in one day? Respect!";
+      } else if (spent == 0) {
+        quote.textContent = "😇 Not a single rupee? Are you okay tho?";
+      } else {
+        quote.textContent = "🧾 Money managed like a pro today!";
+      }
+    }
+
+    function toggleSettings() {
+      document.getElementById('settingsMenu').classList.toggle('hidden');
+    }
+
+    function resetData() {
+      localStorage.clear();
+      balance = 0;
+      spent = 0;
+      document.getElementById('balanceDisplay').textContent = "--";
+      document.getElementById('spentDisplay').textContent = "0";
+      document.getElementById('savingsDisplay').textContent = "--";
+      document.getElementById('funnyQuote').textContent = "";
+      alert("All data has been reset.");
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Budget Note</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet" />
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Poppins', sans-serif;
+    }
+
+    body {
+      background: #000;
+      color: #f5f5dc;
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow-x: hidden;
+      transition: background 0.4s ease, color 0.4s ease;
+    }
+
+    .container {
+      width: 380px;
+      background: transparent;
+      padding: 30px 25px;
+      border-radius: 20px;
+      box-shadow: 0 0 20px rgba(255, 255, 255, 0.08);
+      position: relative;
+      text-align: center;
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .logo {
+      font-size: 1.4em;
+      font-weight: 600;
+      color: inherit;
+    }
+
+    .settings {
+      font-size: 1.8em;
+      cursor: pointer;
+      color: inherit;
+      user-select: none;
+      padding: 6px 10px;
+      border-radius: 6px;
+      transition: background 0.2s ease;
+    }
+
+    .settings:hover {
+      background: #222;
+    }
+
+    .welcome {
+      font-size: 1em;
+      margin-bottom: 10px;
+    }
+
+    .quote {
+      font-size: 0.85em;
+      color: #bcbcbc;
+      margin-bottom: 20px;
+      font-style: italic;
+    }
+
+    .btn {
+      display: block;
+      width: 90%;
+      padding: 12px;
+      margin: 10px auto;
+      background-color: #1c1c1c;
+      color: inherit;
+      border: none;
+      border-radius: 10px;
+      font-size: 0.95em;
+      cursor: pointer;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.6);
+      transition: transform 0.2s ease, background 0.3s ease;
+      text-align: left;
+      padding-left: 18px;
+      text-decoration: none;
+      user-select: none;
+    }
+
+    .btn:hover {
+      background-color: #333;
+      transform: translateY(-2px);
+    }
+
+    .modal-bg {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.8);
+      backdrop-filter: blur(5px);
+      z-index: 100;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+
+    .modal {
+  background: #1c1c1c;
+  color: #f5f5dc;
+  width: 280px;
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 8px 24px rgba(255, 255, 255, 0.1);
+  text-align: center;
+    backdrop-filter: blur(10px);
+  background: rgba(28, 28, 28, 0.9);
+
+}
+
+    .modal h2 {
+      margin-bottom: 12px;
+      font-weight: 600;
+    }
+
+    .modal button {
+      margin: 10px 0;
+      padding: 10px 25px;
+      background: #222;
+      color: #f5f5dc;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      font-size: 0.95em;
+      transition: background 0.3s ease;
+      width: 100%;
+    }
+
+    .modal button:hover {
+      background: #444;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <div class="header">
+      <div class="logo">Budget Note</div>
+      <div class="settings" id="settingsBtn" title="Settings">⋮</div>
+    </div>
+
+    <div class="welcome" id="welcomeText">Hey Jo! What do you want to do today?</div>
+    <div class="quote">"Plan your spend, rule your end."</div>
+
+    <a href="today-spends.html" class="btn">💸 Add Today’s Spends</a>
+    <a href="balance.html" class="btn">💰 Check Available Balance</a>
+    <a href="bills.html" class="btn">📋 Update Bills to Pay</a>
+    <a href="buylist.html" class="btn">🛒 Things to Buy List</a>
+    <a href="overview.html" class="btn">📊 Monthly Overview</a>
+    <a href="notes.html" class="btn">📝 Save Quick Notes</a>
+  </div>
+
+  <!-- Settings Modal -->
+  <div class="modal-bg" id="modalBg">
+    <div class="modal">
+      <h2>Settings</h2>
+      <p>Customize your Budget Note experience.</p>
+      <button onclick="editName()">📝 Edit Your Name</button>
+      <button onclick="toggleTheme()">🌓 Toggle Dark/Light Mode</button>
+      <button id="clearDataBtn">🗑️ Clear All Data</button>
+      <button id="closeModalBtn">❌ Close</button>
+    </div>
+  </div>
+
+  <script>
+    const settingsBtn = document.getElementById("settingsBtn");
+    const modalBg = document.getElementById("modalBg");
+    const closeModalBtn = document.getElementById("closeModalBtn");
+    const clearDataBtn = document.getElementById("clearDataBtn");
+    const welcomeText = document.getElementById("welcomeText");
+
+    // Load saved name and theme on startup
+    window.addEventListener('load', () => {
+      const username = localStorage.getItem("username") || "Jo";
+      welcomeText.textContent = `Hey ${username}! What do you want to do today?`;
+
+      const savedTheme = localStorage.getItem("theme");
+      if (savedTheme === "light") {
+        document.body.style.background = "#f5f5dc";
+        document.body.style.color = "#000";
+      }
+    });
+
+    settingsBtn.addEventListener('click', () => {
+      modalBg.style.display = 'flex';
+    });
+
+    closeModalBtn.addEventListener('click', () => {
+      modalBg.style.display = 'none';
+    });
+
+    clearDataBtn.addEventListener('click', () => {
+      if (confirm('Are you sure you want to clear all saved data? This cannot be undone.')) {
+        localStorage.clear();
+        alert('All data cleared.');
+        location.reload();
+      }
+    });
+
+    function editName() {
+      const newName = prompt("Enter your name:");
+      if (newName) {
+        localStorage.setItem("username", newName);
+        alert("Name updated!");
+        location.reload();
+      }
+    }
+
+    function toggleTheme() {
+      const currentTheme = localStorage.getItem("theme");
+      if (currentTheme === "light") {
+        document.body.style.background = "#000";
+        document.body.style.color = "#f5f5dc";
+        localStorage.setItem("theme", "dark");
+      } else {
+        document.body.style.background = "#f5f5dc";
+        document.body.style.color = "#000";
+        localStorage.setItem("theme", "light");
+      }
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>📝 Quick Notes</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins&display=swap" rel="stylesheet">
+  <style>
+    body {
+      background-color: #000;
+      color: #fff;
+      font-family: 'Poppins', sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+      margin: 0;
+    }
+
+    h2 {
+      text-align: center;
+      font-size: 1.5rem;
+      margin-bottom: 20px;
+      color: #f5f5dc;
+    }
+
+    .note-input {
+      width: 100%;
+      max-width: 400px;
+      display: flex;
+      gap: 8px;
+      margin-bottom: 20px;
+    }
+
+    input[type="text"] {
+      flex: 1;
+      padding: 12px;
+      border-radius: 12px;
+      border: none;
+      font-size: 1rem;
+      background-color: #222;
+      color: #fff;
+    }
+
+    button {
+      background-color: #f5f5dc;
+      color: #000;
+      border: none;
+      border-radius: 12px;
+      padding: 10px 14px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .note-list {
+      width: 100%;
+      max-width: 400px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .note {
+      background-color: #111;
+      padding: 12px;
+      border-radius: 12px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .note-text {
+      max-height: 3.6em;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      position: relative;
+      white-space: pre-wrap;
+      line-height: 1.2em;
+    }
+
+    .note-text.expanded {
+      max-height: none;
+    }
+
+    .note-actions {
+      margin-top: 8px;
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+    }
+
+    .note-actions button {
+      background-color: #333;
+      color: #fff;
+      font-size: 0.9rem;
+      padding: 6px 10px;
+      border-radius: 8px;
+    }
+
+    .read-more {
+      background: none;
+      border: none;
+      color: #bbb;
+      font-size: 0.85rem;
+      margin-top: 6px;
+      text-align: left;
+      cursor: pointer;
+      padding: 0;
+    }
+
+    .quote {
+      margin-top: 30px;
+      text-align: center;
+      font-size: 0.9rem;
+      color: #aaa;
+      max-width: 300px;
+    }
+
+    .edit-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.8);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+
+    .edit-box {
+      background-color: #1e1e1e;
+      padding: 20px;
+      border-radius: 16px;
+      width: 90%;
+      max-width: 350px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .edit-box textarea {
+      background-color: #000;
+      color: #fff;
+      border: none;
+      padding: 12px;
+      font-size: 1rem;
+      border-radius: 10px;
+      resize: none;
+      min-height: 120px;
+    }
+
+    .edit-box button {
+      margin-top: 10px;
+      padding: 10px;
+      background-color: #f5f5dc;
+      color: #000;
+      border: none;
+      border-radius: 10px;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+
+  <h2>📝 Quick Notes</h2>
+
+  <div class="note-input">
+    <input type="text" id="noteInput" placeholder="Type your note..." />
+    <button onclick="addNote()">Add</button>
+  </div>
+
+  <div class="note-list" id="noteList"></div>
+
+  <div class="quote">“Note it before you forget it — or blame your brain later 😅”</div>
+
+  <div id="editOverlay" class="edit-overlay" style="display: none;">
+    <div class="edit-box">
+      <textarea id="editText"></textarea>
+      <button onclick="saveEdit()">Save</button>
+    </div>
+  </div>
+
+  <script>
+    let notes = JSON.parse(localStorage.getItem("notes")) || [];
+    let editIndex = null;
+
+    function saveNotes() {
+      localStorage.setItem("notes", JSON.stringify(notes));
+    }
+
+    function addNote() {
+      const input = document.getElementById('noteInput');
+      const text = input.value.trim();
+      if (text !== '') {
+        notes.push(text);
+        input.value = '';
+        saveNotes();
+        renderNotes();
+      }
+    }
+
+    function deleteNote(index) {
+      notes.splice(index, 1);
+      saveNotes();
+      renderNotes();
+    }
+
+    function editNote(index) {
+      editIndex = index;
+      document.getElementById("editText").value = notes[index];
+      document.getElementById("editOverlay").style.display = "flex";
+    }
+
+    function saveEdit() {
+      const updatedText = document.getElementById("editText").value.trim();
+      if (updatedText !== '') {
+        notes[editIndex] = updatedText;
+        saveNotes();
+        renderNotes();
+        document.getElementById("editOverlay").style.display = "none";
+      }
+    }
+
+    function toggleReadMore(btn, index) {
+      const textEl = document.getElementById(`note-${index}`);
+      const expanded = textEl.classList.toggle("expanded");
+      btn.innerText = expanded ? "Show Less" : "Read More";
+    }
+
+    function renderNotes() {
+      const noteList = document.getElementById('noteList');
+      noteList.innerHTML = '';
+      notes.forEach((note, i) => {
+        noteList.innerHTML += `
+          <div class="note">
+            <div class="note-text" id="note-${i}">${note}</div>
+            ${note.length > 100 ? `<button class="read-more" onclick="toggleReadMore(this, ${i})">Read More</button>` : ''}
+            <div class="note-actions">
+              <button onclick="editNote(${i})">Edit</button>
+              <button onclick="deleteNote(${i})">Delete</button>
+            </div>
+          </div>
+        `;
+      });
+    }
+
+    window.onload = renderNotes;
+  </script>
+
+</body>
+</html>

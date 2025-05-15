@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>🛒 Things to Buy List</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins&display=swap" rel="stylesheet" />
+  <style>
+    body {
+      background-color: #000;
+      color: #fff;
+      font-family: 'Poppins', sans-serif;
+      max-width: 500px;
+      margin: auto;
+      padding: 25px 15px;
+    }
+    h2 {
+      margin-bottom: 20px;
+      color: #f5f5dc;
+    }
+    .item-entry {
+      background: #1a1a1a;
+      margin: 8px 0;
+      padding: 12px 15px;
+      border-radius: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 1.1em;
+    }
+    .item-entry span {
+      flex-grow: 1;
+    }
+    .btn-small {
+      background: none;
+      border: none;
+      color: #ccc;
+      cursor: pointer;
+      font-size: 1.1em;
+      margin-left: 10px;
+    }
+    .add-btn {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      width: 52px;
+      height: 52px;
+      border-radius: 50%;
+      background-color: #f5f5dc;
+      color: #000;
+      font-size: 30px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      cursor: pointer;
+      box-shadow: 0 4px 8px rgba(255, 255, 255, 0.1);
+    }
+    .slide-up-form {
+      position: fixed;
+      bottom: -230px;
+      left: 0;
+      right: 0;
+      background-color: #1a1a1a;
+      padding: 20px;
+      border-top-left-radius: 20px;
+      border-top-right-radius: 20px;
+      box-shadow: 0 -4px 10px rgba(0, 0, 0, 0.3);
+      transition: bottom 0.3s ease;
+      z-index: 10;
+    }
+    .slide-up-form input {
+      width: 100%;
+      margin-bottom: 10px;
+      padding: 10px;
+      background: #000;
+      border: none;
+      border-radius: 8px;
+      color: #fff;
+      font-size: 1em;
+    }
+    .slide-up-form button {
+      width: 100%;
+      padding: 10px;
+      background: #f5f5dc;
+      color: #000;
+      border: none;
+      border-radius: 8px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    .show-form {
+      bottom: 0;
+    }
+    .quote {
+      margin-top: 15px;
+      font-style: italic;
+      color: #f5f5dc;
+      font-size: 1em;
+    }
+  </style>
+</head>
+<body>
+
+  <h2>🛒 Things to Buy List</h2>
+  <div id="buyList"></div>
+  <div class="quote" id="funnyQuote"></div>
+
+  <div class="add-btn" onclick="showForm()">+</div>
+
+  <div id="slideUpForm" class="slide-up-form">
+    <input type="text" id="itemName" placeholder="Item name (e.g. Milk)" />
+    <input type="number" id="itemQty" placeholder="Quantity (optional)" min="1" />
+    <button onclick="submitItem()">Add / Update Item</button>
+  </div>
+
+  <script>
+    const buyList = document.getElementById('buyList');
+    const funnyQuote = document.getElementById('funnyQuote');
+    const slideUpForm = document.getElementById('slideUpForm');
+    const itemNameInput = document.getElementById('itemName');
+    const itemQtyInput = document.getElementById('itemQty');
+
+    let items = JSON.parse(localStorage.getItem('buyItems')) || [];
+    let editIndex = -1;
+
+    function updateDisplay() {
+      buyList.innerHTML = '';
+
+      if (items.length === 0) {
+        buyList.innerHTML = '<p style="color:#aaa; font-style: italic;">Your buy list is empty. Tap + to add items!</p>';
+      }
+
+      items.forEach((item, index) => {
+        const div = document.createElement('div');
+        div.className = 'item-entry';
+
+        const qtyText = item.quantity ? ` (₹${item.quantity})` : '';
+        div.innerHTML = `
+          <span>${item.name}${qtyText}</span>
+          <span>
+            <button class="btn-small" onclick="editItem(${index})">✏️</button>
+            <button class="btn-small" onclick="deleteItem(${index})">🗑️</button>
+          </span>
+        `;
+        buyList.appendChild(div);
+      });
+
+      updateQuote();
+      localStorage.setItem('buyItems', JSON.stringify(items));
+    }
+
+    function updateQuote() {
+      if (items.length === 0) {
+        funnyQuote.textContent = "🛍️ Nothing to buy yet! Shopping break? 😄";
+      } else if (items.length > 10) {
+        funnyQuote.textContent = "🛒 Wow, that's a lot! Your wallet might cry 😅";
+      } else {
+        funnyQuote.textContent = "🛍️ Keep calm and shop on!";
+      }
+    }
+
+    function showForm() {
+      itemNameInput.value = '';
+      itemQtyInput.value = '';
+      editIndex = -1;
+      slideUpForm.classList.add('show-form');
+    }
+
+    function submitItem() {
+      const name = itemNameInput.value.trim();
+      const qty = parseInt(itemQtyInput.value.trim());
+
+      if (!name) {
+        alert('Please enter an item name.');
+        return;
+      }
+
+      if (editIndex !== -1) {
+        items[editIndex] = { name, quantity: isNaN(qty) ? null : qty };
+        editIndex = -1;
+      } else {
+        items.push({ name, quantity: isNaN(qty) ? null : qty });
+      }
+
+      slideUpForm.classList.remove('show-form');
+      updateDisplay();
+    }
+
+    function editItem(index) {
+      const item = items[index];
+      itemNameInput.value = item.name;
+      itemQtyInput.value = item.quantity || '';
+      editIndex = index;
+      slideUpForm.classList.add('show-form');
+    }
+
+    function deleteItem(index) {
+      items.splice(index, 1);
+      updateDisplay();
+    }
+
+    updateDisplay();
+  </script>
+
+</body>
+</html>

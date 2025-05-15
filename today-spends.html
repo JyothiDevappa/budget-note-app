@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Today's Spends</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    body {
+      background-color: #000;
+      color: #fff;
+      font-family: 'Poppins', sans-serif;
+      padding: 40px 20px;
+    }
+
+    .container {
+      max-width: 500px;
+      margin: auto;
+    }
+
+    h2 {
+      font-size: 1.4em;
+      margin-bottom: 20px;
+      color: #f5f5dc;
+    }
+
+    .spend-entry {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #1a1a1a;
+      margin: 8px 0;
+      padding: 10px 14px;
+      border-radius: 10px;
+    }
+
+    .spend-entry span {
+      font-size: 1em;
+    }
+
+    .delete-btn {
+      background: none;
+      border: none;
+      color: #ccc;
+      cursor: pointer;
+      font-size: 1.1em;
+    }
+
+    .total {
+      margin-top: 20px;
+      font-size: 1em;
+      color: #f5f5dc;
+    }
+
+    .feedback {
+      margin-top: 8px;
+      font-size: 0.9em;
+      font-style: italic;
+      color: #f5f5dc;
+    }
+
+    .add-btn {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      width: 52px;
+      height: 52px;
+      border-radius: 50%;
+      background-color: #f5f5dc;
+      color: #000;
+      font-size: 30px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      cursor: pointer;
+      box-shadow: 0 4px 8px rgba(255, 255, 255, 0.1);
+    }
+
+    .slide-up-form {
+      position: fixed;
+      bottom: -250px;
+      left: 0;
+      right: 0;
+      background-color: #1a1a1a;
+      padding: 20px;
+      border-top-left-radius: 20px;
+      border-top-right-radius: 20px;
+      box-shadow: 0 -4px 10px rgba(0, 0, 0, 0.3);
+      transition: bottom 0.3s ease;
+    }
+
+    .slide-up-form input {
+      width: 100%;
+      margin-bottom: 10px;
+      padding: 10px;
+      background: #000;
+      border: none;
+      border-radius: 8px;
+      color: #fff;
+      font-size: 1em;
+    }
+
+    .slide-up-form button {
+      width: 100%;
+      padding: 10px;
+      background: #f5f5dc;
+      color: #000;
+      border: none;
+      border-radius: 8px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .show-form {
+      bottom: 0;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <h2>🧾 Today's Spends</h2>
+
+    <div id="spendList">
+      <!-- Spend entries will be added here -->
+    </div>
+
+    <div class="total" id="totalSpends">Today's Total: ₹0</div>
+    <div class="feedback" id="feedbackText"></div>
+  </div>
+
+  <div class="add-btn" onclick="addEntry()">+</div>
+
+  <!-- Slide-up Form -->
+  <div id="slideUpForm" class="slide-up-form">
+    <input type="text" id="itemsInput" placeholder="Items" />
+    <input type="text" id="amountsInput" placeholder="Amounts" />
+    <button onclick="submitEntries()">Add</button>
+  </div>
+
+  
+<script>
+
+const spendList = document.getElementById('spendList');
+const totalSpends = document.getElementById('totalSpends');
+const feedbackText = document.getElementById('feedbackText');
+
+let spends = JSON.parse(localStorage.getItem('spendsData')) || [];
+let editIndex = -1;
+
+function saveToLocalStorage() {
+  localStorage.setItem('spendsData', JSON.stringify(spends));
+}
+
+function updateDisplay() {
+  spendList.innerHTML = '';
+  let total = 0;
+
+  spends.forEach((entry, index) => {
+    total += entry.amount;
+
+    const div = document.createElement('div');
+    div.className = 'spend-entry';
+    div.innerHTML = `
+      <span>${entry.item}</span>
+      <span>
+        ₹${entry.amount} 
+        <button class="delete-btn" onclick="editEntry(${index})">✏️</button>
+        <button class="delete-btn" onclick="deleteEntry(${index})">🗑️</button>
+      </span>
+    `;
+    spendList.appendChild(div);
+  });
+
+  totalSpends.textContent = `Today's Total: ₹${total}`;
+
+  if (total >= 1000) {
+    feedbackText.textContent = "😅 Ohh god! You're spending a lot today!";
+  } else if (total <= 100) {
+    feedbackText.textContent = "💸 You're in money-saving beast mode!";
+  } else {
+    feedbackText.textContent = "";
+  }
+}
+
+function deleteEntry(index) {
+  spends.splice(index, 1);
+  saveToLocalStorage();
+  updateDisplay();
+}
+
+function editEntry(index) {
+  const entry = spends[index];
+  document.getElementById('itemsInput').value = entry.item;
+  document.getElementById('amountsInput').value = entry.amount;
+  editIndex = index;
+  document.getElementById("slideUpForm").classList.add("show-form");
+}
+
+function addEntry() {
+  document.getElementById("slideUpForm").classList.add("show-form");
+}
+
+function submitEntries() {
+  const items = document.getElementById('itemsInput').value.split(',');
+  const amounts = document.getElementById('amountsInput').value.split(',');
+
+  if (items.length !== amounts.length) {
+    alert("Items and amounts count should match.");
+    return;
+  }
+
+  for (let i = 0; i < items.length; i++) {
+    const item = items[i].trim();
+    const amount = parseInt(amounts[i].trim());
+    if (item && !isNaN(amount)) {
+      if (editIndex !== -1) {
+        spends[editIndex] = { item, amount };
+        editIndex = -1;
+      } else {
+        spends.push({ item, amount });
+      }
+    }
+  }
+
+  document.getElementById('itemsInput').value = '';
+  document.getElementById('amountsInput').value = '';
+  document.getElementById("slideUpForm").classList.remove("show-form");
+
+  saveToLocalStorage();
+  updateDisplay();
+}
+
+updateDisplay();
+
+
+
+
+
+
+</script>
+  
+
+</body>
+</html>

@@ -110,17 +110,16 @@
     }
 
     .modal {
-  background: #1c1c1c;
-  color: #f5f5dc;
-  width: 280px;
-  border-radius: 16px;
-  padding: 20px;
-  box-shadow: 0 8px 24px rgba(255, 255, 255, 0.1);
-  text-align: center;
-    backdrop-filter: blur(10px);
-  background: rgba(28, 28, 28, 0.9);
-
-}
+      background: #1c1c1c;
+      color: #f5f5dc;
+      width: 280px;
+      border-radius: 16px;
+      padding: 20px;
+      box-shadow: 0 8px 24px rgba(255, 255, 255, 0.1);
+      text-align: center;
+      backdrop-filter: blur(10px);
+      background: rgba(28, 28, 28, 0.9);
+    }
 
     .modal h2 {
       margin-bottom: 12px;
@@ -170,7 +169,6 @@
       <h2>Settings</h2>
       <p>Customize your Budget Note experience.</p>
       <button onclick="editName()">📝 Edit Your Name</button>
-      <button onclick="toggleTheme()">🌓 Toggle Dark/Light Mode</button>
       <button id="clearDataBtn">🗑️ Clear All Data</button>
       <button id="closeModalBtn">❌ Close</button>
     </div>
@@ -183,16 +181,10 @@
     const clearDataBtn = document.getElementById("clearDataBtn");
     const welcomeText = document.getElementById("welcomeText");
 
-    // Load saved name and theme on startup
+    // Load saved name on startup
     window.addEventListener('load', () => {
       const username = localStorage.getItem("username") || "Jo";
       welcomeText.textContent = `Hey ${username}! What do you want to do today?`;
-
-      const savedTheme = localStorage.getItem("theme");
-      if (savedTheme === "light") {
-        document.body.style.background = "#f5f5dc";
-        document.body.style.color = "#000";
-      }
     });
 
     settingsBtn.addEventListener('click', () => {
@@ -217,19 +209,6 @@
         localStorage.setItem("username", newName);
         alert("Name updated!");
         location.reload();
-      }
-    }
-
-    function toggleTheme() {
-      const currentTheme = localStorage.getItem("theme");
-      if (currentTheme === "light") {
-        document.body.style.background = "#000";
-        document.body.style.color = "#f5f5dc";
-        localStorage.setItem("theme", "dark");
-      } else {
-        document.body.style.background = "#f5f5dc";
-        document.body.style.color = "#000";
-        localStorage.setItem("theme", "light");
       }
     }
   </script>

@@ -114,6 +114,26 @@
     .show-form {
       bottom: 0;
     }
+
+    #balanceInputContainer input {
+      background: #000;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      padding: 10px;
+      width: 100%;
+    }
+
+    #balanceInputContainer button {
+      margin-top: 8px;
+      width: 100%;
+      padding: 10px;
+      background: #f5f5dc;
+      color: #000;
+      border: none;
+      border-radius: 8px;
+      font-weight: bold;
+    }
   </style>
 </head>
 <body>
@@ -127,6 +147,18 @@
 
     <div class="total" id="totalSpends">Today's Total: ₹0</div>
     <div class="feedback" id="feedbackText"></div>
+
+    <div class="total" id="balanceSection">
+      Balance: ₹<span id="balanceDisplay">0</span>
+      <button class="delete-btn" id="editBalanceBtn" onclick="editBalance()">✏️</button>
+    </div>
+    <div style="margin-top: 8px; font-size: 0.9em;">
+      Available: ₹<span id="availableAmount">0</span>
+    </div>
+    <div id="balanceInputContainer" style="display: none; margin-top: 10px;">
+      <input type="number" id="balanceInput" placeholder="Enter Balance" />
+      <button onclick="saveBalance()">💾 Save</button>
+    </div>
   </div>
 
   <div class="add-btn" onclick="addEntry()">+</div>
@@ -138,108 +170,120 @@
     <button onclick="submitEntries()">Add</button>
   </div>
 
-  
-<script>
+  <script>
+    const spendList = document.getElementById('spendList');
+    const totalSpends = document.getElementById('totalSpends');
+    const feedbackText = document.getElementById('feedbackText');
+    const balanceDisplay = document.getElementById('balanceDisplay');
+    const availableAmount = document.getElementById('availableAmount');
 
-const spendList = document.getElementById('spendList');
-const totalSpends = document.getElementById('totalSpends');
-const feedbackText = document.getElementById('feedbackText');
+    let spends = JSON.parse(localStorage.getItem('spendsData')) || [];
+    let balance = parseInt(localStorage.getItem('userBalance')) || 0;
+    let editIndex = -1;
 
-let spends = JSON.parse(localStorage.getItem('spendsData')) || [];
-let editIndex = -1;
+    function saveToLocalStorage() {
+      localStorage.setItem('spendsData', JSON.stringify(spends));
+    }
 
-function saveToLocalStorage() {
-  localStorage.setItem('spendsData', JSON.stringify(spends));
-}
+    function updateDisplay() {
+      spendList.innerHTML = '';
+      let total = 0;
 
-function updateDisplay() {
-  spendList.innerHTML = '';
-  let total = 0;
+      spends.forEach((entry, index) => {
+        total += entry.amount;
 
-  spends.forEach((entry, index) => {
-    total += entry.amount;
+        const div = document.createElement('div');
+        div.className = 'spend-entry';
+        div.innerHTML = `
+          <span>${entry.item}</span>
+          <span>
+            ₹${entry.amount} 
+            <button class="delete-btn" onclick="editEntry(${index})">✏️</button>
+            <button class="delete-btn" onclick="deleteEntry(${index})">🗑️</button>
+          </span>
+        `;
+        spendList.appendChild(div);
+      });
 
-    const div = document.createElement('div');
-    div.className = 'spend-entry';
-    div.innerHTML = `
-      <span>${entry.item}</span>
-      <span>
-        ₹${entry.amount} 
-        <button class="delete-btn" onclick="editEntry(${index})">✏️</button>
-        <button class="delete-btn" onclick="deleteEntry(${index})">🗑️</button>
-      </span>
-    `;
-    spendList.appendChild(div);
-  });
+      totalSpends.textContent = `Today's Total: ₹${total}`;
+      balanceDisplay.textContent = balance;
+      availableAmount.textContent = balance - total;
 
-  totalSpends.textContent = `Today's Total: ₹${total}`;
-
-  if (total >= 1000) {
-    feedbackText.textContent = "😅 Ohh god! You're spending a lot today!";
-  } else if (total <= 100) {
-    feedbackText.textContent = "💸 You're in money-saving beast mode!";
-  } else {
-    feedbackText.textContent = "";
-  }
-}
-
-function deleteEntry(index) {
-  spends.splice(index, 1);
-  saveToLocalStorage();
-  updateDisplay();
-}
-
-function editEntry(index) {
-  const entry = spends[index];
-  document.getElementById('itemsInput').value = entry.item;
-  document.getElementById('amountsInput').value = entry.amount;
-  editIndex = index;
-  document.getElementById("slideUpForm").classList.add("show-form");
-}
-
-function addEntry() {
-  document.getElementById("slideUpForm").classList.add("show-form");
-}
-
-function submitEntries() {
-  const items = document.getElementById('itemsInput').value.split(',');
-  const amounts = document.getElementById('amountsInput').value.split(',');
-
-  if (items.length !== amounts.length) {
-    alert("Items and amounts count should match.");
-    return;
-  }
-
-  for (let i = 0; i < items.length; i++) {
-    const item = items[i].trim();
-    const amount = parseInt(amounts[i].trim());
-    if (item && !isNaN(amount)) {
-      if (editIndex !== -1) {
-        spends[editIndex] = { item, amount };
-        editIndex = -1;
+      if (total >= 1000) {
+        feedbackText.textContent = "😅 Ohh god! You're spending a lot today!";
+      } else if (total <= 100) {
+        feedbackText.textContent = "💸 You're in money-saving beast mode!";
       } else {
-        spends.push({ item, amount });
+        feedbackText.textContent = "";
       }
     }
-  }
 
-  document.getElementById('itemsInput').value = '';
-  document.getElementById('amountsInput').value = '';
-  document.getElementById("slideUpForm").classList.remove("show-form");
+    function deleteEntry(index) {
+      spends.splice(index, 1);
+      saveToLocalStorage();
+      updateDisplay();
+    }
 
-  saveToLocalStorage();
-  updateDisplay();
-}
+    function editEntry(index) {
+      const entry = spends[index];
+      document.getElementById('itemsInput').value = entry.item;
+      document.getElementById('amountsInput').value = entry.amount;
+      editIndex = index;
+      document.getElementById("slideUpForm").classList.add("show-form");
+    }
 
-updateDisplay();
+    function addEntry() {
+      document.getElementById("slideUpForm").classList.add("show-form");
+    }
 
+    function submitEntries() {
+      const items = document.getElementById('itemsInput').value.split(',');
+      const amounts = document.getElementById('amountsInput').value.split(',');
 
+      if (items.length !== amounts.length) {
+        alert("Items and amounts count should match.");
+        return;
+      }
 
+      for (let i = 0; i < items.length; i++) {
+        const item = items[i].trim();
+        const amount = parseInt(amounts[i].trim());
+        if (item && !isNaN(amount)) {
+          if (editIndex !== -1) {
+            spends[editIndex] = { item, amount };
+            editIndex = -1;
+          } else {
+            spends.push({ item, amount });
+          }
+        }
+      }
 
+      document.getElementById('itemsInput').value = '';
+      document.getElementById('amountsInput').value = '';
+      document.getElementById("slideUpForm").classList.remove("show-form");
 
+      saveToLocalStorage();
+      updateDisplay();
+    }
 
-</script>
-  
+    function editBalance() {
+      document.getElementById('balanceInputContainer').style.display = 'block';
+      document.getElementById('balanceInput').value = balance;
+    }
 
+    function saveBalance() {
+      const inputVal = parseInt(document.getElementById('balanceInput').value);
+      if (!isNaN(inputVal)) {
+        balance = inputVal;
+        localStorage.setItem('userBalance', balance);
+        document.getElementById('balanceInputContainer').style.display = 'none';
+        updateDisplay();
+      } else {
+        alert("Please enter a valid number.");
+      }
+    }
+
+    updateDisplay();
+  </script>
 </body>
 </html>
